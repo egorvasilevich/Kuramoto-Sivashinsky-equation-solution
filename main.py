@@ -36,6 +36,7 @@ A = (2/pi)*A.subs({c: c_})
 B = (2/pi)*B.subs({c: c_})
 
 # далее считаем интегралы для четырех уравнений
+print("Система дифференциальных уравнений:")
 #нахождение 1го интеграла
 first_differential_equation = integrate(B, (x, 0, pi))
 print('{} = {}'.format(U_dot_0, first_differential_equation))
@@ -57,8 +58,8 @@ try :
     system_solutions = solve([second_differential_equation.subs(b, b_), third_differential_equation.subs(b, b_), fourth_differential_equation.subs(b, b_)], U1, U2, U3)
 
     # все найденные решения системы переводим решения из символьной формы в числовую (в число с плавающей точкой)
-    solutions = [tuple(sol_value.evalf() for sol_value in sol) for sol in system_solutions] 
-    print('b={}:\n {}\n'.format(b_, solutions))
+    solutions = [tuple(sol_value.evalf() for sol_value in sol) for sol in system_solutions]
+    print('\nРешения системы уравнений при b={}:\n{}'.format(b_, solutions))
 except Exception as e :
     print(e)
 
@@ -70,19 +71,21 @@ legend = [] # массив содержащий информацию об уст
 
 # цвета используемые для покраски поверхностей на 3D графике
 plot_colors = [
-    'b',#	blue
-    'g',#	green
-    'r',#	red
-    'c',#	cyan
-    'm',#	magenta
-    'y',#	yellow
-    'k',#	black
-    'w' #	white
+    'b',#	голубой
+    'g',#	зелёный
+    'r',#	красный
+    'c',#	циановый
+    'm',#	пурпурный
+    'y',#	желтый
+    'k',#	черный
+    'w' #	белый
 ]
 
 t_range = 6 # интервал изменения t от 0 до t_range
 x_increment_size = 0.08 # значение шага x от 0 до pi || чем меньше тем более гладкие линии (значение 0.08 оптимально) 
 shape_size = math.ceil(pi/x_increment_size)
+
+print("\nАнализ устойчивости найденных решений:")
 
 # для каждого найденного решения производим ряд операций
 for solution in solutions :
@@ -121,8 +124,6 @@ for solution in solutions :
 
     # находим собственные значения и вектора матрицы Якоби
     eigenvalues, eigenvectors = LA.eig(yakobi_matrix)
-    
-    print('-----------------------------------------------------------------------------------------------')
 
     # производим ряд проверок, определяющих устойчивость текущего решения
     # 1. Если хотя бы одно собственное значение  = 0 -> считаем решение точкой смены устойчивости
@@ -140,14 +141,12 @@ for solution in solutions :
             check_upper += 1
     if check_zero != 0 :
         dot_stability = 0
-        print("Точка V{} {} явялется точкой смены устойчивости при b = {}, eigenvalue = {}".format(solutions.index(solution)+1, solution, b_, eigenvalues))
+        print("Точка V{} {} явялется точкой смены устойчивости при b = {} и  собственном значении = {}".format(solutions.index(solution)+1, solution, b_, eigenvalues))
     elif check_upper != 0 :
         dot_stability = -1
-        print('точка V{} {} равновесия не устойчива'.format(solutions.index(solution)+1, solution))
+        print('Точка V{} {} равновесия не устойчива'.format(solutions.index(solution)+1, solution))
     elif check_lower == len(eigenvalues) :
-        print('точка V{} {} асимптотически устойчива'.format(solutions.index(solution)+1, solution))
-
-    print('-----------------------------------------------------------------------------------------------')
+        print('Точка V{} {} асимптотически устойчива'.format(solutions.index(solution)+1, solution))
 
     stability = ''
     if dot_stability == 0 :
@@ -228,9 +227,9 @@ axes_2d_t1.legend(legend, loc='upper right')
 axes_2d_t5.legend(legend, loc='upper right')
 
 # объявляем названия 2D графикам
-axes_2d_t0.set_title("Ut при t=0")
-axes_2d_t1.set_title("Ut при t=1")
-axes_2d_t5.set_title("Ut при t=5")
+axes_2d_t0.set_title("График решений Ut при t = 0 и 0 <= x <= Pi")
+axes_2d_t1.set_title("График решений Ut при t = 1 и 0 <= x <= Pi")
+axes_2d_t5.set_title("График решений Ut при t = 5 и 0 <= x <= Pi")
 
 # объявляем обозначения числовых осей 3D графика
 axes_3d_plot.set_xlabel('ось t')
