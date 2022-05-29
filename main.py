@@ -1,6 +1,7 @@
 from cmath import cos as cos
 from cmath import sin as sin
 from math import pi
+import math
 from sympy import *
 import numpy as np
 from numpy import linalg as LA
@@ -10,7 +11,7 @@ import matplotlib.pyplot as plt
 x, U0, U1, U2, U3, U4, U_dot_0, U_dot_1, U_dot_2, U_dot_3, b, c = symbols('x U0 U1 U2 U3 U4 U_dot_0 U_dot_1 U_dot_2 U_dot_3 b c')
 
 # определение b, c и собственной функции
-b_ = 8 # с _ т.к. эти символы используются в уравнении
+b_ = 2 # с _ т.к. эти символы используются в уравнении
 c_ = 1 # -||-
 
 def own_function(n,x) :
@@ -36,38 +37,39 @@ B = (2/pi)*B.subs({c: c_})
 
 # далее считаем интегралы для четырех уравнений
 #нахождение 1го интеграла
-zero_B = integrate(B, (x, 0, pi))
-print('{} = {}'.format(U_dot_0, zero_B))
+first_differential_equation = integrate(B, (x, 0, pi))
+print('{} = {}'.format(U_dot_0, first_differential_equation))
 
 #нахождение 2го интеграла
-first_B = integrate(B*own_function(1,x), (x, 0, pi))
-print('{} = {}'.format(U_dot_1, first_B))
+second_differential_equation = integrate(B*own_function(1,x), (x, 0, pi))
+print('{} = {}'.format(U_dot_1, second_differential_equation))
 
 #нахождение 3го интеграла
-second_B = integrate(B*own_function(2,x), (x, 0, pi))
-print('{} = {}'.format(U_dot_2, second_B))
+third_differential_equation = integrate(B*own_function(2,x), (x, 0, pi))
+print('{} = {}'.format(U_dot_2, third_differential_equation))
 
 #нахождение 4го интеграла
-third_B = integrate(B*own_function(3,x), (x, 0, pi))
-print('{} = {}'.format(U_dot_3, third_B))
+fourth_differential_equation = integrate(B*own_function(3,x), (x, 0, pi))
+print('{} = {}'.format(U_dot_3, fourth_differential_equation))
 
-# далее решаем полученную систему уравнений
+# далее решаем полученную систему дифференциальных уравнений
 try :
-    sol = solve([first_B.subs(b, b_), second_B.subs(b, b_), third_B.subs(b, b_)], U1, U2, U3)
-    print(sol) # все найденные решения системы
-    soln = [tuple(v.evalf() for v in s) for s in sol]
-    print('b={}:\n {}\n'.format(b_, soln))
+    system_solutions = solve([second_differential_equation.subs(b, b_), third_differential_equation.subs(b, b_), fourth_differential_equation.subs(b, b_)], U1, U2, U3)
+
+    # все найденные решения системы переводим решения из символьной формы в числовую (в число с плавающей точкой)
+    solutions = [tuple(sol_value.evalf() for sol_value in sol) for sol in system_solutions] 
+    print('b={}:\n {}\n'.format(b_, solutions))
 except Exception as e :
     print(e)
 
 # определяем необходимые структуры для сохранения решений
 t_array = [] # массив содержащий значения t ( 6 раз по 40 значений 0 <= t <= 6)
 x_array = [] # массив содержащий значения x ( 6 раз по 40 значений 0 <= x <= pi)
-u_t_array = [] # многомерный массив, который содержит массивы решений для Ut. Размерность массива = кол-ву решений. Каждый массив состоит из 6 подмассивов по 40 значений Ut
+ut_array = [] # многомерный массив, который содержит массивы решений для Ut. Размерность массива = кол-ву решений. Каждый массив состоит из 6 подмассивов по 40 значений Ut
 legend = [] # массив содержащий информацию об устойчивости решения, собственно решения и его индекса. Используется для составления легенды на графике. 
 
 # цвета используемые для покраски поверхностей на 3D графике
-my_colors = [
+plot_colors = [
     'b',#	blue
     'g',#	green
     'r',#	red
@@ -79,44 +81,46 @@ my_colors = [
 ]
 
 t_range = 6 # интервал изменения t от 0 до t_range
+x_increment_size = 0.08 # значение шага x от 0 до pi || чем меньше тем более гладкие линии (значение 0.08 оптимально) 
+shape_size = math.ceil(pi/x_increment_size)
 
 # для каждого найденного решения производим ряд операций
-for s in soln :
+for solution in solutions :
     dot_stability = 1
 
     # составляем матрицу Якоби частных производных
-    x11 = diff(first_B.subs(b,b_),U1)
-    x11_ = complex(x11.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x11 = diff(second_differential_equation.subs(b,b_),U1)
+    x11_ = complex(x11.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
-    x12 = diff(first_B.subs(b,b_),U2)
-    x12_ = complex(x12.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x12 = diff(second_differential_equation.subs(b,b_),U2)
+    x12_ = complex(x12.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
-    x13 = diff(first_B.subs(b,b_),U3)
-    x13_ = complex(x13.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x13 = diff(second_differential_equation.subs(b,b_),U3)
+    x13_ = complex(x13.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
-    x21 = diff(second_B.subs(b,b_),U1)
-    x21_ = complex(x21.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x21 = diff(third_differential_equation.subs(b,b_),U1)
+    x21_ = complex(x21.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
-    x22 = diff(second_B.subs(b,b_),U2)
-    x22_ = complex(x22.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x22 = diff(third_differential_equation.subs(b,b_),U2)
+    x22_ = complex(x22.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
-    x23 = diff(second_B.subs(b,b_),U3)
-    x23_ = complex(x23.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x23 = diff(third_differential_equation.subs(b,b_),U3)
+    x23_ = complex(x23.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
-    x31 = diff(third_B.subs(b,b_),U1)
-    x31_ = complex(x31.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x31 = diff(fourth_differential_equation.subs(b,b_),U1)
+    x31_ = complex(x31.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
-    x32 = diff(third_B.subs(b,b_),U2)
-    x32_ = complex(x32.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x32 = diff(fourth_differential_equation.subs(b,b_),U2)
+    x32_ = complex(x32.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
-    x33 = diff(third_B.subs(b,b_),U3)
-    x33_ = complex(x33.subs({U1:s[0], U2:s[1], U3:s[2]}))
+    x33 = diff(fourth_differential_equation.subs(b,b_),U3)
+    x33_ = complex(x33.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
 
     yakobi_matrix = np.array([[x11_.real, x12_.real, x13_.real], [x21_.real, x22_.real, x23_.real], \
         [x31_.real, x32_.real, x33_.real]], dtype=complex)
 
     # находим собственные значения и вектора матрицы Якоби
-    wa, va = LA.eig(yakobi_matrix)
+    eigenvalues, eigenvectors = LA.eig(yakobi_matrix)
     
     print('-----------------------------------------------------------------------------------------------')
 
@@ -127,21 +131,21 @@ for s in soln :
     check_lower = 0
     check_upper = 0
     check_zero = 0
-    for k in wa :
-        if round(k.real,8) == 0 :
+    for eigenvalue in eigenvalues :
+        if round(eigenvalue.real,8) == 0 :
             check_zero += 1
-        if k.real < 0 :
+        if eigenvalue.real < 0 :
             check_lower += 1
-        if k.real > 0 :
+        if eigenvalue.real > 0 :
             check_upper += 1
     if check_zero != 0 :
         dot_stability = 0
-        print("Точка V{} {} явялется точкой смены устойчивости при b = {}, wa = {}".format(soln.index(s)+1, s, b_, wa))
+        print("Точка V{} {} явялется точкой смены устойчивости при b = {}, eigenvalue = {}".format(solutions.index(solution)+1, solution, b_, eigenvalues))
     elif check_upper != 0 :
         dot_stability = -1
-        print('точка V{} {} равновесия не устойчива'.format(soln.index(s)+1, s))
-    elif check_lower == len(wa) :
-        print('точка V{} {} асимптотически устойчива'.format(soln.index(s)+1, s))
+        print('точка V{} {} равновесия не устойчива'.format(solutions.index(solution)+1, solution))
+    elif check_lower == len(eigenvalues) :
+        print('точка V{} {} асимптотически устойчива'.format(solutions.index(solution)+1, solution))
 
     print('-----------------------------------------------------------------------------------------------')
 
@@ -154,80 +158,87 @@ for s in soln :
         stability = 'устойчива'
     
     # заполняем легенду данными об устойчивости решений
-    legend.append('V{}- {} {}'.format(soln.index(s)+1, stability, s))
+    legend.append('V{}- {} {}'.format(solutions.index(solution)+1, stability, solution))
 
     # инициализация новых элементов массива
-    u_t_array.append([]) 
+    ut_array.append([]) 
 
     # для каждого t от 0 до t_range с шагом 1 находим значения Ut и сохраняем результаты в массивы
     for t in range(t_range) :
-        x__ = 0
+        x_ = 0
 
         # для каждого x от 0 до pi с шагом 0.08 находим значения Ut и сохраняем результаты в массивы
-        while x__ < pi :
+        while x_ < pi :
 
             # подставляем значения решения в U0 с точкой 
-            U_dot_0_ = zero_B.subs({U1:s[0], U2:s[1], U3:s[2]})
+            U_dot_0_ = first_differential_equation.subs({U1:solution[0], U2:solution[1], U3:solution[2]})
 
             # интегрируя U0 с точкой по t получим:
             U0_ = U_dot_0_*t
 
             # подставляем все найденные значения в исходное уравнение U_t
-            U_t_ = complex(U_t.subs({U0:U0_, U1:s[0], U2:s[1], U3:s[2], x:x__}))
+            U_t_ = complex(U_t.subs({U0:U0_, U1:solution[0], U2:solution[1], U3:solution[2], x:x_}))
             
             # заполняем массивы данных для t и x
-            if soln.index(s) == 0 :
-                t_array.append(t) # 40 times append t
-                x_array.append(x__) # 40 times append 
+            if solutions.index(solution) == 0 :
+                t_array.append(t) # 40 раз добавляем значение t
+                x_array.append(x_) # 40 раз добавляем значения x
             
             # для каждого решения записываем значения Ut в отдельный подмассив
-            u_t_array[soln.index(s)].append(U_t_.real)
-
-            x__ += 0.08
+            ut_array[solutions.index(solution)].append(U_t_.real)
+            x_ += x_increment_size
 
 # инициализируем фигуры под графики
-fig = plt.figure()
-fig_t_0 = plt.figure()
-fig_t_1 = plt.figure()
-fig_t_5 = plt.figure()
+figure_3d_plot = plt.figure()
+figure_2d_t0   = plt.figure()
+figure_2d_t1   = plt.figure()
+figure_2d_t5   = plt.figure()
 
 # инициализируем графики на фигурах
-ax = fig.add_subplot(111, projection='3d')
-ax1 = fig_t_0.add_subplot(111)
-ax2 = fig_t_1.add_subplot(111)
-ax3 = fig_t_5.add_subplot(111)
+axes_3d_plot = figure_3d_plot.add_subplot(111, projection='3d')
+axes_2d_t0   = figure_2d_t0.add_subplot(111)
+axes_2d_t1   = figure_2d_t1.add_subplot(111)
+axes_2d_t5   = figure_2d_t5.add_subplot(111)
 
 # превращаем одномерные массивы в матрицы для отрисовки в 3D
-x_plot = np.reshape(t_array, (t_range, 40))
-y_plot = np.reshape(x_array, (t_range, 40))
+t_axis = np.reshape(t_array, (t_range, shape_size)) # x ось по умолчанию
+x_axis = np.reshape(x_array, (t_range, shape_size)) # y ось по умолчанию
 
 # для отрисовки каждого решения выполняем ряд действий
-for i in range(len(u_t_array)) :
+for index in range(len(ut_array)) :
 
     # превращаем одномерный массив с решениями Ut в матрицу
-    z_plot = np.reshape(u_t_array[i], (t_range, 40))
+    ut_axis = np.reshape(ut_array[index], (t_range, shape_size)) # z ось по умолчанию
 
     # отрисовываем 3D график решения Ut
-    ax.plot_surface(x_plot, y_plot, z_plot, color=my_colors[i%8])
+    surf = axes_3d_plot.plot_surface(t_axis, x_axis, ut_axis, color=plot_colors[index%8], label=legend[index])
+
+    # эта конструкция помогает решить проблему с цветами в легенде для 3D графика
+    surf._facecolors2d = surf._facecolor3d
+    surf._edgecolors2d = surf._edgecolor3d
 
     # отрисовывываем 2D графики для решения при t = 0,1,5 соответственно
-    ax1.plot(y_plot[0], z_plot[0])
-    ax2.plot(y_plot[0], z_plot[1])
-    ax3.plot(y_plot[0], z_plot[5])
+    axes_2d_t0.plot(x_axis[0], ut_axis[0])
+    axes_2d_t1.plot(x_axis[0], ut_axis[1])
+    axes_2d_t5.plot(x_axis[0], ut_axis[5])
 
 # объявляем отрисовку легенды на 2D графиках
-ax1.legend(legend, loc='upper right')
-ax2.legend(legend, loc='upper right')
-ax3.legend(legend, loc='upper right')
+axes_2d_t0.legend(legend, loc='upper right')
+axes_2d_t1.legend(legend, loc='upper right')
+axes_2d_t5.legend(legend, loc='upper right')
 
 # объявляем названия 2D графикам
-ax1.set_title("Ut при t=0")
-ax2.set_title("Ut при t=1")
-ax3.set_title("Ut при t=5")
+axes_2d_t0.set_title("Ut при t=0")
+axes_2d_t1.set_title("Ut при t=1")
+axes_2d_t5.set_title("Ut при t=5")
 
 # объявляем обозначения числовых осей 3D графика
-ax.set_xlabel('T Label')
-ax.set_ylabel('X Label')
-ax.set_zlabel('U_t Label')
+axes_3d_plot.set_xlabel('ось t')
+axes_3d_plot.set_ylabel('ось x')
+axes_3d_plot.set_zlabel('ось Ut')
+
+# объявляем название 3D графика
+axes_3d_plot.set_title(f"График решений Ut при 0 <= t <= {t_range - 1} и 0 <= x <= Pi")
+axes_3d_plot.legend(loc='best')
 
 plt.show()
