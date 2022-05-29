@@ -67,12 +67,6 @@ try :
 except Exception as e :
     print(e)
 
-###############################################################################################
-###############################################################################################
-###############################################################################################
-#|
-#V
-
 t_array = [] # 10 times by 40 values 0 .. 9
 x_array = [] #  10 times by 40 values 0 .. pi
 u_t_array = [] # multiarray || 10 times by 40 values of u_t
@@ -91,9 +85,7 @@ my_colors = [
 for count_solutions in range(len(soln)) :
     u_t_array.append([])
 
-print(u_t_array)
-
-t_range = 100
+t_range = 6
 
 legend = []
 for t in range(t_range) :
@@ -155,16 +147,13 @@ for t in range(t_range) :
         elif check_lower == 3 :
             print('точка V{} {} асимптотически устойчива'.format(soln.index(s)+1, s))
 
-        arr_y = []
-        arr_x = []
         x__ = 0
         while x__ < pi :
-            #U_t_t_ = find_u_t(zero_B_=zero_B, U_t_=U_t, sol1=s[0], sol2=s[1], sol3=s[2], x_=x__, t_=t)
             U_dot_0_ = zero_B.subs({U1:s[0], U2:s[1], U3:s[2]})
             #интегрируя U0 с точкой по t получим:
             U0_ = U_dot_0_*t
             U_t_ = complex(U_t.subs({U0:U0_, U1:s[0], U2:s[1], U3:s[2], x:x__}))
-            
+
             if soln.index(s) == 0 :
                 t_array.append(t) # 40 times append t
                 x_array.append(x__) # 40 times append 
@@ -180,121 +169,39 @@ for t in range(t_range) :
             stability = 'неустойчива'
         else :
             stability = 'устойчива'
-
+        
         print('-----------------------------------------------------------------------------------------------')
 
-print(f"{t_array} \n ############# \n {x_array} \n ########### \n {u_t_array} \n")
-
 fig = plt.figure()
+fig_t_0 = plt.figure()
+fig_t_1 = plt.figure()
+fig_t_5 = plt.figure()
+
 ax = fig.add_subplot(111, projection='3d')
+ax1 = fig_t_0.add_subplot(111)
+ax2 = fig_t_1.add_subplot(111)
+ax3 = fig_t_5.add_subplot(111)
+
+x_plot = np.reshape(t_array, (t_range, 40))
+y_plot = np.reshape(x_array, (t_range, 40))
 
 for i in range(len(u_t_array)) :
-    x_plot = np.reshape(t_array, (t_range, 40))
-    y_plot = np.reshape(x_array, (t_range, 40))
     z_plot = np.reshape(u_t_array[i], (t_range, 40))
 
     ax.plot_surface(x_plot, y_plot, z_plot, color=my_colors[i%8])
 
+    ax1.plot(y_plot[0], z_plot[0])
+    ax2.plot(y_plot[0], z_plot[1])
+    ax3.plot(y_plot[0], z_plot[5])
+    
 ax.set_xlabel('T Label')
 ax.set_ylabel('X Label')
 ax.set_zlabel('U_t Label')
 
-plt.show(block=False)
-#A
-#|
-###############################################################################################
-###############################################################################################
-###############################################################################################
-
-
-legend = []
-for t in t_ :
-    plt.figure()
-
-    for s in soln :
-
-        dot_stability = 1
-
-        x11 = diff(first_B.subs(b,b_),U1)
-        x11_ = complex(x11.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        x12 = diff(first_B.subs(b,b_),U2)
-        x12_ = complex(x12.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        x13 = diff(first_B.subs(b,b_),U3)
-        x13_ = complex(x13.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        x21 = diff(second_B.subs(b,b_),U1)
-        x21_ = complex(x21.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        x22 = diff(second_B.subs(b,b_),U2)
-        x22_ = complex(x22.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        x23 = diff(second_B.subs(b,b_),U3)
-        x23_ = complex(x23.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        x31 = diff(third_B.subs(b,b_),U1)
-        x31_ = complex(x31.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        x32 = diff(third_B.subs(b,b_),U2)
-        x32_ = complex(x32.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        x33 = diff(third_B.subs(b,b_),U3)
-        x33_ = complex(x33.subs({U1:s[0], U2:s[1], U3:s[2]}))
-
-        print('-----------------------------------------------------------------------------------------------')
-
-        yakobi_matrix = np.array([[x11_.real, x12_.real, x13_.real], [x21_.real, x22_.real, x23_.real], \
-            [x31_.real, x32_.real, x33_.real]], dtype=complex)
-
-        #находим собственные значения и вектора
-        wa, va = LA.eig(yakobi_matrix)
-
-        check_lower = 0
-        check_upper = 0
-        check_zero = 0
-        for k in wa :
-            if round(k.real,8) == 0 :
-                check_zero += 1
-            if k.real < 0 :
-                check_lower += 1
-            if k.real > 0 :
-                check_upper += 1
-        if check_zero != 0 :
-            dot_stability = 0
-            print("Точка V{} {} явялется точкой смены устойчивости при b = {}, wa = {}".format(soln.index(s)+1, s, b_, wa))
-        elif check_upper != 0 :
-            dot_stability = -1
-            print('точка V{} {} равновесия не устойчива'.format(soln.index(s)+1, s))
-        elif check_lower == 3 :
-            print('точка V{} {} асимптотически устойчива'.format(soln.index(s)+1, s))
-
-        arr_y = []
-        arr_x = []
-        x__ = 0
-        while x__ < pi :
-            #U_t_t_ = find_u_t(zero_B_=zero_B, U_t_=U_t, sol1=s[0], sol2=s[1], sol3=s[2], x_=x__, t_=t)
-            U_dot_0_ = zero_B.subs({U1:s[0], U2:s[1], U3:s[2]})
-            #интегрируя U0 с точкой по t получим:
-            U0_ = U_dot_0_*t
-            U_t_ = complex(U_t.subs({U0:U0_, U1:s[0], U2:s[1], U3:s[2], x:x__}))
-            arr_y.append(U_t_.real)
-            arr_x.append(x__)
-            x__ += 0.08
-
-        plt.plot(arr_x, arr_y)
-
-        stability = ''
-        if dot_stability == 0 :
-            stability = 'смена устойчивости'
-        elif dot_stability == -1 :
-            stability = 'неустойчива'
-        else :
-            stability = 'устойчива'
-
-        legend.append('V{}- {} {} t = {}'.format(soln.index(s)+1, stability, s, t))
-        print('-----------------------------------------------------------------------------------------------')
-    plt.legend(legend, loc='upper right')
-    plt.show(block=False)
-    legend.clear()
+#plt.show(block=False)
 plt.show()
+
+#legend.append('V{}- {} {} t = {}'.format(soln.index(s)+1, stability, s, t))
+#plt.legend(legend, loc='upper right')
+#plt.show(block=False)
+#legend.clear()
