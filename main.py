@@ -8,7 +8,7 @@ from numpy import linalg as LA
 import matplotlib.pyplot as plt
 
 # объявление переменных, которые будут использоваться в расчетах
-x, U0, U1, U2, U3, U4, U_dot_0, U_dot_1, U_dot_2, U_dot_3, b, c = symbols('x U0 U1 U2 U3 U4 U_dot_0 U_dot_1 U_dot_2 U_dot_3 b c')
+x, U0, U1, U2, U3, U4, U_dot_0, U_dot_1, U_dot_2, U_dot_3, U_dot_4, b, c = symbols('x U0 U1 U2 U3 U4 U_dot_0 U_dot_1 U_dot_2 U_dot_3 U_dot_4 b c')
 
 # определение b, c и собственной функции
 b_ = 2 # с _ т.к. эти символы используются в уравнении
@@ -18,8 +18,8 @@ def own_function(n,x) :
     return cos(n*x)
 
 # определение изначальной задачи Ut
-U_t = U0/2 + U1*own_function(1,x) + U2*own_function(2,x) + U3*own_function(3,x)
-U_dot = U_dot_0/2 + U_dot_1*own_function(1,x) + U_dot_2*own_function(2,x) + U_dot_3*own_function(3,x)
+U_t = U0/2 + U1*own_function(1,x) + U2*own_function(2,x) + U3*own_function(3,x) + U4*own_function(4,x)
+U_dot = U_dot_0/2 + U_dot_1*own_function(1,x) + U_dot_2*own_function(2,x) + U_dot_3*own_function(3,x) + U_dot_4*own_function(4,x)
 
 # дифференцируем U по x 4 раза
 Ux = diff(U_t, x)
@@ -52,6 +52,10 @@ print('{} = {}'.format(U_dot_2, third_differential_equation))
 #нахождение 4го интеграла
 fourth_differential_equation = integrate(B*own_function(3,x), (x, 0, pi))
 print('{} = {}'.format(U_dot_3, fourth_differential_equation))
+
+#нахождение 5го интеграла
+fifth_differential_equation = integrate(B*own_function(4,x), (x, 0, pi))
+print('{} = {}'.format(U_dot_4, fifth_differential_equation))
 
 # далее решаем полученную систему дифференциальных уравнений
 try :
