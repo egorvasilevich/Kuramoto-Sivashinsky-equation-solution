@@ -6,12 +6,13 @@ from sympy import *
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plt
+import random
 
 # объявление переменных, которые будут использоваться в расчетах
 x, U0, U1, U2, U3, U4, U_dot_0, U_dot_1, U_dot_2, U_dot_3, U_dot_4, b, c = symbols('x U0 U1 U2 U3 U4 U_dot_0 U_dot_1 U_dot_2 U_dot_3 U_dot_4 b c')
 
 # определение b, c и собственной функции
-b_ = 2 # с _ т.к. эти символы используются в уравнении
+b_ = 6 # с _ т.к. эти символы используются в уравнении
 c_ = 1 # -||-
 
 def own_function(n,x) :
@@ -58,14 +59,39 @@ fifth_differential_equation = integrate(B*own_function(4,x), (x, 0, pi))
 print('{} = {}'.format(U_dot_4, fifth_differential_equation))
 
 # далее решаем полученную систему дифференциальных уравнений
-try :
-    system_solutions = solve([second_differential_equation.subs(b, b_), third_differential_equation.subs(b, b_), fourth_differential_equation.subs(b, b_)], U1, U2, U3)
 
-    # все найденные решения системы переводим решения из символьной формы в числовую (в число с плавающей точкой)
-    solutions = [tuple(sol_value.evalf() for sol_value in sol) for sol in system_solutions]
-    print('\nРешения системы уравнений при b={}:\n{}'.format(b_, solutions))
-except Exception as e :
-    print(e)
+solutions = []
+
+for iteration in range(10):
+    u1__ = random.randint(-10, 10)
+    u2__ = random.randint(-10, 10)
+    u3__ = random.randint(-10, 10)
+    u4__ = random.randint(-10, 10)
+
+    print(f"{u1__} || {u2__} || {u3__} || {u4__}")
+
+    parsed_solution = [0,0,0,0]
+
+    try :
+        print("\nРешаю систему нелинейных уравнений")
+        solution = nsolve((second_differential_equation.subs(b, b_), third_differential_equation.subs(b, b_), \
+                                  fourth_differential_equation.subs(b, b_), fifth_differential_equation.subs(b, b_)), \
+                                 (U1, U2, U3, U4), (u1__,u2__,u3__,u4__))
+        
+        parsed_solution = []
+
+        for sol in solution:
+            parsed_solution.append(sol)
+
+    except Exception as e :
+        print(e)
+
+    if parsed_solution not in solutions:
+        solutions.append(parsed_solution)
+
+    ## все найденные решения системы переводим решения из символьной формы в числовую (в число с плавающей точкой)
+    #solutions = [tuple(sol_value.evalf() for sol_value in sol) for sol in system_solutions]
+print('\nНайдено {} решений системы уравнений при b={}:\n{}'.format(len(solutions), b_, solutions))
 
 # определяем необходимые структуры для сохранения решений
 t_array = [] # массив содержащий значения t ( 6 раз по 40 значений 0 <= t <= 6)
@@ -97,34 +123,55 @@ for solution in solutions :
 
     # составляем матрицу Якоби частных производных
     x11 = diff(second_differential_equation.subs(b,b_),U1)
-    x11_ = complex(x11.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x11_ = complex(x11.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
     x12 = diff(second_differential_equation.subs(b,b_),U2)
-    x12_ = complex(x12.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x12_ = complex(x12.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
     x13 = diff(second_differential_equation.subs(b,b_),U3)
-    x13_ = complex(x13.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x13_ = complex(x13.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
+
+    x14 = diff(second_differential_equation.subs(b,b_),U4)
+    x14_ = complex(x14.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
     x21 = diff(third_differential_equation.subs(b,b_),U1)
-    x21_ = complex(x21.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x21_ = complex(x21.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
     x22 = diff(third_differential_equation.subs(b,b_),U2)
-    x22_ = complex(x22.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x22_ = complex(x22.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
     x23 = diff(third_differential_equation.subs(b,b_),U3)
-    x23_ = complex(x23.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x23_ = complex(x23.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
+
+    x24 = diff(third_differential_equation.subs(b,b_),U4)
+    x24_ = complex(x24.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
     x31 = diff(fourth_differential_equation.subs(b,b_),U1)
-    x31_ = complex(x31.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x31_ = complex(x31.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
     x32 = diff(fourth_differential_equation.subs(b,b_),U2)
-    x32_ = complex(x32.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x32_ = complex(x32.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
     x33 = diff(fourth_differential_equation.subs(b,b_),U3)
-    x33_ = complex(x33.subs({U1:solution[0], U2:solution[1], U3:solution[2]}))
+    x33_ = complex(x33.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
 
-    yakobi_matrix = np.array([[x11_.real, x12_.real, x13_.real], [x21_.real, x22_.real, x23_.real], \
-        [x31_.real, x32_.real, x33_.real]], dtype=complex)
+    x34 = diff(fourth_differential_equation.subs(b,b_),U4)
+    x34_ = complex(x34.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
+
+    x41 = diff(fifth_differential_equation.subs(b,b_),U1)
+    x41_ = complex(x41.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
+
+    x42 = diff(fifth_differential_equation.subs(b,b_),U2)
+    x42_ = complex(x42.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
+
+    x43 = diff(fifth_differential_equation.subs(b,b_),U3)
+    x43_ = complex(x43.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
+
+    x44 = diff(fifth_differential_equation.subs(b,b_),U4)
+    x44_ = complex(x44.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]}))
+
+    yakobi_matrix = np.array([[x11_.real, x12_.real, x13_.real, x14_.real], [x21_.real, x22_.real, x23_.real, x24_.real], \
+        [x31_.real, x32_.real, x33_.real, x34_.real], [x41_.real, x42_.real, x43_.real, x44_.real]], dtype=complex)
 
     # находим собственные значения и вектора матрицы Якоби
     eigenvalues, eigenvectors = LA.eig(yakobi_matrix)
@@ -174,13 +221,13 @@ for solution in solutions :
         while x_ < pi :
 
             # подставляем значения решения в U0 с точкой 
-            U_dot_0_ = first_differential_equation.subs({U1:solution[0], U2:solution[1], U3:solution[2]})
+            U_dot_0_ = first_differential_equation.subs({U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3]})
 
             # интегрируя U0 с точкой по t получим:
             U0_ = U_dot_0_*t
 
             # подставляем все найденные значения в исходное уравнение U_t
-            U_t_ = complex(U_t.subs({U0:U0_, U1:solution[0], U2:solution[1], U3:solution[2], x:x_}))
+            U_t_ = complex(U_t.subs({U0:U0_, U1:solution[0], U2:solution[1], U3:solution[2], U4:solution[3], x:x_}))
             
             # заполняем массивы данных для t и x
             if solutions.index(solution) == 0 :
