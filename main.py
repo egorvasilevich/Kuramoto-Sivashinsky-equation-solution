@@ -12,7 +12,7 @@ import random
 x, U0, U1, U2, U3, U4, U_dot_0, U_dot_1, U_dot_2, U_dot_3, U_dot_4, b, c = symbols('x U0 U1 U2 U3 U4 U_dot_0 U_dot_1 U_dot_2 U_dot_3 U_dot_4 b c')
 
 # определение b, c и собственной функции
-b_ = 6 # с _ т.к. эти символы используются в уравнении
+b_ = 2 # с _ т.к. эти символы используются в уравнении
 c_ = 1 # -||-
 
 def own_function(n,x) :
@@ -58,39 +58,43 @@ print('{} = {}'.format(U_dot_3, fourth_differential_equation))
 fifth_differential_equation = integrate(B*own_function(4,x), (x, 0, pi))
 print('{} = {}'.format(U_dot_4, fifth_differential_equation))
 
-# далее решаем полученную систему дифференциальных уравнений
+# далее решаем полученную систему дифференциальных уравнений (систему обыкновенных нелинейных уравнений) численным методом
+# метод nsolve требует точки приближенной к решению и при этом выдаёт лишь одно решение
+# для того, чтобы найти все решения случайно будем подбирать стартовые точки и добавлять уникальные решения в массив решений системы
 
 solutions = []
 
-for iteration in range(10):
+# найдём решения для 100 разных стартовых точек
+for iteration in range(100):
+
+    # генеируем случайную стартовую точку
     u1__ = random.randint(-10, 10)
     u2__ = random.randint(-10, 10)
     u3__ = random.randint(-10, 10)
     u4__ = random.randint(-10, 10)
 
-    print(f"{u1__} || {u2__} || {u3__} || {u4__}")
-
     parsed_solution = [0,0,0,0]
 
     try :
-        print("\nРешаю систему нелинейных уравнений")
+        # решаем систему численным методом, подставляя в качестве стартовой точки - сгенерированную
         solution = nsolve((second_differential_equation.subs(b, b_), third_differential_equation.subs(b, b_), \
                                   fourth_differential_equation.subs(b, b_), fifth_differential_equation.subs(b, b_)), \
-                                 (U1, U2, U3, U4), (u1__,u2__,u3__,u4__))
+                                 (U1, U2, U3, U4), (u1__, u2__, u3__, u4__))
         
         parsed_solution = []
-
+        
+        # парсим решение и округляем его значения до 8 знаков после запятой
         for sol in solution:
-            parsed_solution.append(sol)
+            parsed_solution.append(round(sol, 8))
 
     except Exception as e :
-        print(e)
+        pass
+        #print(e)
 
+    # проверяем, есть ли в массиве решений найденное, если нет - добавляем 
     if parsed_solution not in solutions:
         solutions.append(parsed_solution)
 
-    ## все найденные решения системы переводим решения из символьной формы в числовую (в число с плавающей точкой)
-    #solutions = [tuple(sol_value.evalf() for sol_value in sol) for sol in system_solutions]
 print('\nНайдено {} решений системы уравнений при b={}:\n{}'.format(len(solutions), b_, solutions))
 
 # определяем необходимые структуры для сохранения решений
