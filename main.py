@@ -6,9 +6,10 @@ from sympy import *
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plt
+import random
 
 # объявление переменных, которые будут использоваться в расчетах
-x, U0, U1, U2, U3, U4, U_dot_0, U_dot_1, U_dot_2, U_dot_3, b, c = symbols('x U0 U1 U2 U3 U4 U_dot_0 U_dot_1 U_dot_2 U_dot_3 b c')
+x, U0, U1, U2, U3, U_dot_0, U_dot_1, U_dot_2, U_dot_3, b, c = symbols('x U0 U1 U2 U3 U_dot_0 U_dot_1 U_dot_2 U_dot_3 b c')
 
 # определение b, c и собственной функции
 b_ = 2 # с _ т.к. эти символы используются в уравнении
@@ -54,14 +55,39 @@ fourth_differential_equation = integrate(B*own_function(3,x), (x, 0, pi))
 print('{} = {}'.format(U_dot_3, fourth_differential_equation))
 
 # далее решаем полученную систему дифференциальных уравнений
-try :
-    system_solutions = solve([second_differential_equation.subs(b, b_), third_differential_equation.subs(b, b_), fourth_differential_equation.subs(b, b_)], U1, U2, U3)
+solutions = []
 
-    # все найденные решения системы переводим решения из символьной формы в числовую (в число с плавающей точкой)
-    solutions = [tuple(sol_value.evalf() for sol_value in sol) for sol in system_solutions]
-    print('\nРешения системы уравнений при b={}:\n{}'.format(b_, solutions))
-except Exception as e :
-    print(e)
+# найдём решения для 100 разных стартовых точек
+for iteration in range(100):
+
+    # генеируем случайную стартовую точку
+    u1__ = random.randint(-10, 10)
+    u2__ = random.randint(-10, 10)
+    u3__ = random.randint(-10, 10)
+
+    parsed_solution = [0.0, 0.0, 0.0]
+
+    try :
+        # решаем систему численным методом, подставляя в качестве стартовой точки - сгенерированную
+        solution = nsolve((second_differential_equation.subs(b, b_), third_differential_equation.subs(b, b_), \
+                                  fourth_differential_equation.subs(b, b_)), \
+                                 (U1, U2, U3), (u1__, u2__, u3__))
+        
+        parsed_solution = []
+        
+        # парсим решение и округляем его значения до 8 знаков после запятой
+        for sol in solution:
+            parsed_solution.append(round(sol, 8))
+
+    except Exception as e :
+        pass
+        #print(e)
+
+    # проверяем, есть ли в массиве решений найденное, если нет - добавляем 
+    if parsed_solution not in solutions:
+        solutions.append(parsed_solution)
+
+print('\nНайдено {} решений системы уравнений при b={}:\n{}'.format(len(solutions), b_, solutions))
 
 # определяем необходимые структуры для сохранения решений
 t_array = [] # массив содержащий значения t ( 6 раз по 40 значений 0 <= t <= 6)
